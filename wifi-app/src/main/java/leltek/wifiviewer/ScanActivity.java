@@ -3,14 +3,12 @@ package leltek.wifiviewer;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Matrix;
-import android.graphics.PointF;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
+import android.widget.NumberPicker;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.corelibs.utils.ToastMgr;
@@ -23,33 +21,29 @@ import leltek.viewer.model.WifiProbe;
 
 public class ScanActivity extends AppCompatActivity
         implements Probe.ScanListener, Probe.CineBufferListener,
-        Probe.BatteryListener, Probe.TemperatureListener,
-        View.OnTouchListener {
+        Probe.BatteryListener, Probe.TemperatureListener {
     final static Logger logger = LoggerFactory.getLogger(ScanActivity.class);
 
     private Probe probe;
     private Button mToggleScan;
+    private Button mBMode;
+    private Button mCMode;
     private Button mFit;
-    private ImageView mImageView;
+    private UsImageView mImageView;
     private TextView mCineBufferCount;
     private Button mTestConnectionError;
     private Button mTestOverHeated;
     private Button mTestBatteryLow;
-
-    private Matrix zoomMatrix = new Matrix();
-    private Matrix savedZoomMatrix = new Matrix();
-
-    private static final int NONE = 0;
-    private static final int DRAG = 1;
-    private static final int ZOOM = 2;
-    private int mode = NONE;
-
-    private PointF startPoint = new PointF();
-    private PointF midPoint = new PointF();
-    private float oriDis = 1f;
-    private Matrix fitHeightMatrix;
-    private Matrix fitWidthMatrix;
-    private boolean isFitWidth;
+    private SeekBar mSeekBarGain;
+    private SeekBar mSeekBarDr;
+    private SeekBar mSeekBarTgc1;
+    private SeekBar mSeekBarTgc2;
+    private SeekBar mSeekBarTgc3;
+    private SeekBar mSeekBarTgc4;
+    private SeekBar mSeekBarPersistence;
+    private SeekBar mSeekBarEnhancement;
+    private Button mResetAllTgc;
+    private NumberPicker mNumberPicker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,12 +64,27 @@ public class ScanActivity extends AppCompatActivity
                 if (probe.isLive())
                     probe.stopScan();
                 else {
-                    startScan();
+                    probe.startScan();
                 }
             }
         });
 
-        isFitWidth = false;
+        mBMode = (Button) findViewById(R.id.bMode);
+        mBMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                probe.swithToBMode();
+            }
+        });
+
+        mCMode = (Button) findViewById(R.id.cMode);
+        mCMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                probe.swithToCMode();
+            }
+        });
+
         mFit = (Button) findViewById(R.id.fit);
         mFit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -84,8 +93,7 @@ public class ScanActivity extends AppCompatActivity
             }
         });
 
-        mImageView = (ImageView) findViewById(R.id.bMode_image_view);
-        mImageView.setOnTouchListener(this);
+        mImageView = (UsImageView) findViewById(R.id.image_view);
 
         mCineBufferCount = (TextView) findViewById(R.id.cine_buffer_count);
 
@@ -113,25 +121,199 @@ public class ScanActivity extends AppCompatActivity
                 ((WifiProbe) probe).testBatteryLevelTooLow();
             }
         });
-    }
 
-    private void startScan() {
-        if (isFitWidth)
-            mImageView.setImageMatrix(fitWidthMatrix);
-        else
-            mImageView.setImageMatrix(fitHeightMatrix);
-        probe.startScan();
+        mSeekBarGain = (SeekBar) findViewById(R.id.seekBarGain);
+        mSeekBarGain.setProgress(probe.getGain());
+        mSeekBarGain.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                probe.setGain(progress);
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        mSeekBarDr = (SeekBar) findViewById(R.id.seekBarDr);
+        mSeekBarDr.setProgress(probe.getDr());
+        mSeekBarDr.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                probe.setDr(progress);
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+
+        mSeekBarTgc1 = (SeekBar) findViewById(R.id.seekBarTgc1);
+        mSeekBarTgc1.setProgress(probe.getTgc1());
+        mSeekBarTgc1.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                probe.setTgc1(progress);
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        mSeekBarTgc2 = (SeekBar) findViewById(R.id.seekBarTgc2);
+        mSeekBarTgc2.setProgress(probe.getTgc2());
+        mSeekBarTgc2.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                probe.setTgc2(progress);
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        mSeekBarTgc3 = (SeekBar) findViewById(R.id.seekBarTgc3);
+        mSeekBarTgc3.setProgress(probe.getTgc3());
+        mSeekBarTgc3.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                probe.setTgc3(progress);
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        mSeekBarTgc4 = (SeekBar) findViewById(R.id.seekBarTgc4);
+        mSeekBarTgc4.setProgress(probe.getTgc4());
+        mSeekBarTgc4.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                probe.setTgc4(progress);
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        mResetAllTgc = (Button) findViewById(R.id.resetAllTgc);
+        mResetAllTgc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                probe.resetAllTgc();
+                mSeekBarTgc1.setProgress(probe.getTgc1());
+                mSeekBarTgc2.setProgress(probe.getTgc2());
+                mSeekBarTgc3.setProgress(probe.getTgc3());
+                mSeekBarTgc4.setProgress(probe.getTgc4());
+            }
+        });
+
+        mSeekBarPersistence = (SeekBar) findViewById(R.id.seekBarPersistence);
+        mSeekBarPersistence.setProgress(probe.getPersistence());
+        mSeekBarPersistence.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                probe.setPersistence(progress);
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        mSeekBarEnhancement = (SeekBar) findViewById(R.id.seekBarEnhancement);
+        mSeekBarEnhancement.setProgress(probe.getEnhanceLevel());
+        mSeekBarEnhancement.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                probe.setEnhanceLevel(progress);
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        mNumberPicker = (NumberPicker) findViewById(R.id.np);
+        mNumberPicker.setMinValue(0);
+        mNumberPicker.setMaxValue(probe.getGrayMapMaxValue());
+        mNumberPicker.setWrapSelectorWheel(false);
+        mNumberPicker.setValue(probe.getGrayMap());
+        mNumberPicker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            @Override
+            public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+                probe.setGrayMap(newVal);
+            }
+        });
     }
 
     private void switchFit() {
-        if (isFitWidth) {
-            isFitWidth = false;
-            mImageView.setImageMatrix(fitHeightMatrix);
-            mFit.setText(R.string.fit_width);
-        } else {
-            isFitWidth = true;
-            mImageView.setImageMatrix(fitWidthMatrix);
+        mImageView.switchFit();
+        if (mImageView.isFitWidth()) {
             mFit.setText(R.string.fit_height);
+        } else {
+            mFit.setText(R.string.fit_width);
         }
     }
 
@@ -170,11 +352,21 @@ public class ScanActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         logger.debug("onResume() called");
+        if (probe.getMode() == Probe.EnumMode.MODE_C) {
+            probe.swithToBMode();
+        } if (probe.getMode() == Probe.EnumMode.MODE_B && !probe.isLive()) {
+            probe.startScan();
+        }
     }
 
     @Override
-    public void onModeSwitched(String mode) {
-        startScan();
+    public void onModeSwitched(Probe.EnumMode mode) {
+        if (mode == Probe.EnumMode.MODE_B) {
+            ToastMgr.show("switched to B mode");
+        }
+        else if (mode == Probe.EnumMode.MODE_C) {
+            ToastMgr.show("switched to Color mode");
+        }
     }
 
     @Override
@@ -205,12 +397,25 @@ public class ScanActivity extends AppCompatActivity
     }
 
     @Override
-    public void onNewFrameReady(Bitmap image) {
-        mImageView.setImageBitmap(image);
+    public void onNewFrameReady(Probe.Frame frame, Bitmap bitmap) {
+        if (frame.mode == probe.getMode()) {
+            mImageView.setImageBitmap(bitmap);
+        }
+
+        Probe.CModeFrameData cModeFrameData = frame.cModeFrameData;
+        if (cModeFrameData != null) {
+            mImageView.setParams(cModeFrameData.originXPx, cModeFrameData.originYPx,
+                    cModeFrameData.rPx);
+        }
      }
 
+    /**
+     * 設定depth成功
+     *
+     * @param newDepth newDepth
+     */
     @Override
-    public void onDepthSet(int newDepth) {
+    public void onDepthSet(Probe.EnumDepth newDepth) {
 
     }
 
@@ -225,86 +430,12 @@ public class ScanActivity extends AppCompatActivity
     }
 
     public static Intent newIntent(Context packageContext) {
-        Intent intent = new Intent(packageContext, ScanActivity.class);
-        return intent;
+        return new Intent(packageContext, ScanActivity.class);
     }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-
-        if (!hasFocus)
-            return;
-
-        float viewWidth = (float) mImageView.getWidth();
-        float viewHeight = (float) mImageView.getHeight();
-
-        int width = probe.getImageWidth();
-        int height = probe.getImageHeight();
-
-        float scaleWidth = ((float) viewWidth) / width;
-        fitWidthMatrix = new Matrix();
-        fitWidthMatrix.postScale(scaleWidth, scaleWidth);
-        fitWidthMatrix.postTranslate((viewWidth - width * scaleWidth) / 2, 0);
-
-        float scaleHeight = ((float) viewHeight) / height;
-        fitHeightMatrix = new Matrix();
-        fitHeightMatrix.postScale(scaleHeight, scaleHeight);
-        fitHeightMatrix.postTranslate((viewWidth - width * scaleHeight) / 2, 0);
-
-        probe.swithToBMode();
-    }
-
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        ImageView view = (ImageView) v;
-        switch (event.getAction() & MotionEvent.ACTION_MASK) {
-            case MotionEvent.ACTION_DOWN:
-                zoomMatrix.set(view.getImageMatrix());
-                savedZoomMatrix.set(zoomMatrix);
-                startPoint.set(event.getX(), event.getY());
-                mode = DRAG;
-                break;
-            case MotionEvent.ACTION_POINTER_DOWN:
-                oriDis = distance(event);
-                if (oriDis > 10f) {
-                    savedZoomMatrix.set(zoomMatrix);
-                    midPoint = middle(event);
-                    mode = ZOOM;
-                }
-                break;
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_POINTER_UP:
-                mode = NONE;
-                break;
-            case MotionEvent.ACTION_MOVE:
-                if (mode == DRAG) {
-                    zoomMatrix.set(savedZoomMatrix);
-                    zoomMatrix.postTranslate(event.getX() - startPoint.x, event.getY() - startPoint.y);
-                } else if (mode == ZOOM) {
-                    float newDist = distance(event);
-                    if (newDist > 10f) {
-                        zoomMatrix.set(savedZoomMatrix);
-                        float scale = newDist / oriDis;
-                        zoomMatrix.postScale(scale, scale, midPoint.x, midPoint.y);
-                    }
-                }
-                break;
-        }
-        view.setImageMatrix(zoomMatrix);
-        return true;
-    }
-
-    private float distance(MotionEvent event) {
-        float x = event.getX(0) - event.getX(1);
-        float y = event.getY(0) - event.getY(1);
-        return (float) Math.sqrt(x * x + y * y);
-    }
-
-    private PointF middle(MotionEvent event) {
-        float x = event.getX(0) + event.getX(1);
-        float y = event.getY(0) + event.getY(1);
-        return new PointF(x / 2, y / 2);
+        //probe.startScan();
     }
 
     @Override

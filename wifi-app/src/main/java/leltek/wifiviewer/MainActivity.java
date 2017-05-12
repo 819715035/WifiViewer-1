@@ -46,15 +46,20 @@ public class MainActivity extends AppCompatActivity
                     return;
                 }
 
-                ToastMgr.show("connecting to probe");
-                probe.initialize();
+                if (!probe.isRequesting()) {
+                    ToastMgr.show("connecting to probe");
+                    probe.initialize();
+                }
             }
         });
         mBModeButton = (Button) findViewById(R.id.scan_button);
         mBModeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!probe.isConnected()) {
+                if (probe.isRequesting()) {
+                    ToastMgr.show("Processing previous request.");
+                    return;
+                } else if (!probe.isConnected()) {
                     ToastMgr.show("Not Connected");
                     return;
                 }
@@ -64,7 +69,10 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        if (!probe.isConnected()) {
+        if (probe.isRequesting()) {
+            ToastMgr.show("Processing previous request.");
+            return;
+        } else if (!probe.isConnected()) {
             ToastMgr.show("connecting to probe");
             probe.initialize();
         }
@@ -108,6 +116,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onInitializationError(String message) {
         ToastMgr.show("connect failed: " + message);
+    }
+
+    @Override
+    public void onInitialingLowVoltageError(String message) {
+        ToastMgr.show(message);
     }
 
     @Override
