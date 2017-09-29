@@ -144,9 +144,8 @@ public interface Probe {
     class CModeFrameData {
         public int colorGain;
         public int colorPersistence;
-        public int colorPrf;
-        public int colorThreshold;
-        public EnumColorWall colorWall;
+        public EnumColorPrf colorPrf;
+        public EnumColorSensitivity colorSensitivity;
         public EnumColorAngle colorAngle;
         public float originXPx;
         public float originYPx;
@@ -190,8 +189,7 @@ public interface Probe {
                 cModeFrameData.colorGain = probe.getColorGain();
                 cModeFrameData.colorPersistence = probe.getColorPersistence();
                 cModeFrameData.colorPrf = probe.getColorPrf();
-                cModeFrameData.colorThreshold = probe.getColorThreshold();
-                cModeFrameData.colorWall = probe.getColorWall();
+                cModeFrameData.colorSensitivity = probe.getColorSensitivity();
                 cModeFrameData.colorAngle = probe.getColorAngle();
                 cModeFrameData.originXPx = probe.getOriginXPx();
                 cModeFrameData.originYPx = probe.getOriginYPx();
@@ -285,8 +283,52 @@ public interface Probe {
 
         /**
          * 設定depth失敗
+         *
+         * @param oldDepth oldDepth
          */
-        void onDepthSetError();
+        void onDepthSetError(EnumDepth oldDepth);
+
+        /**
+         * 設定color PRF成功
+         *
+         * @param newColorPrf newColorPrf
+         */
+        void onColorPrfSet(EnumColorPrf newColorPrf);
+
+        /**
+         * 設定color PRF失敗
+         *
+         * @param oldColorPrf oldColorPrf
+         */
+        void onColorPrfSetError(EnumColorPrf oldColorPrf);
+
+        /**
+         * 設定color Sensitivity成功
+         *
+         * @param newColorSensitivity newColorSensitivity
+         */
+        void onColorSensitivitySet(EnumColorSensitivity newColorSensitivity);
+
+        /**
+         * 設定color Sensitivity失敗
+         *
+         * @param oldColorSensitivity oldColorSensitivity
+         */
+        void onColorSensitivitySetError(EnumColorSensitivity oldColorSensitivity);
+
+        /**
+         * 設定color Angle成功
+         *
+         * @param newColorAngle newColorAngle
+         */
+        void onColorAngleSet(EnumColorAngle newColorAngle);
+
+        /**
+         * 設定color Angle失敗
+         *
+         * @param oldColorAngle oldColorAngle
+         */
+        void onColorAngleSetError(EnumColorAngle oldColorAngle);
 
         /**
          * 當發生此事件時，代表此硬體來不及做影像後處理，底層會將image丟掉
@@ -311,14 +353,14 @@ public interface Probe {
      * 由ScanListener.onModeSwitched(EnumMode mode), 且mode等於MODE_B表示切換成功
      * 由ScanListener.onModeSwitchingError()表示切換失敗
      */
-    void swithToBMode();
+    void switchToBMode();
 
     /**
      * 試圖將scan mode切換為C mode
      * 由ScanListener.onModeSwitched(String mode), 且mode等於MODE_C表示切換成功
      * 由ScanListener.onModeSwitchingError()表示切換失敗
      */
-    void swithToCMode();
+    void switchToCMode();
 
     /**
      * 回傳目前的scan mode
@@ -359,7 +401,7 @@ public interface Probe {
     float getFreq();
 
     enum EnumDepth {
-        LinearDepth_32,
+        //LinearDepth_32,
         LinearDepth_63,
         ConvexDepth_126,
         ConvexDepth_189
@@ -549,69 +591,97 @@ public interface Probe {
     void setColorPersistence(int colorPersistence);
 
     /**
+     * 定義Color PRF的合理值
+     */
+    enum EnumColorPrf {
+        ColorPrf_2270("2.27"),
+        ColorPrf_2780("2.78"),
+        ColorPrf_3570("3.57");
+
+        private final String strValue;
+
+        EnumColorPrf(String strValue) {
+            this.strValue = strValue;
+        }
+
+        @Override
+        public String toString(){
+            return strValue;
+        }
+    }
+
+    /**
      * 取得目前的color PRF設定值
      *
      * @return color PRF
      */
-    int getColorPrf();
+    EnumColorPrf getColorPrf();
 
     /**
      * 設定color PRF
      *
-     * @param colorPrf 合理值 2, 4, 5 (kHz)
+     * @param newColorPrf 合理值 2.27, 2.78, 3.57 (kHz)
      */
-    void setColorPrf(int colorPrf);
+    void setColorPrf(EnumColorPrf newColorPrf);
 
     /**
-     * 取得目前的color Threshold設定值
-     *
-     * @return color Threshold
+     * 定義Color Sensitivity的合理值
      */
-    int getColorThreshold();
+    enum EnumColorSensitivity {
+        ColorSensitivity_1(0),
+        ColorSensitivity_2(1),
+        ColorSensitivity_3(2),
+        ColorSensitivity_4(3),
+        ColorSensitivity_5(4),
+        ColorSensitivity_6(5),
+        ColorSensitivity_7(6),
+        ColorSensitivity_8(7);
 
-    /**
-     * 設定color Threshold
-     *
-     * @param colorThreshold 合理值 1~8
-     */
-    void setColorThreshold(int colorThreshold);
+        private final int intValue;
 
-    /**
-     * 定義Color Wall的合理值
-     */
-    enum EnumColorWall {
-        ColorWall_14,
-        ColorWall_19,
-        ColorWall_24,
-        ColorWall_34,
-        ColorWall_49,
-        ColorWall_53,
-        ColorWall_73
+        EnumColorSensitivity(int intValue) {
+            this.intValue = intValue;
+        }
+
+        public int getIntValue() {
+            return intValue;
+        }
     }
 
     /**
-     * 取得目前的color Wall
+     * 取得目前的color Sensitivity設定值
      *
-     * @return color Wall
+     * @return color Sensitivity
      */
-    EnumColorWall getColorWall();
+    EnumColorSensitivity getColorSensitivity();
 
     /**
-     * 設定color Wall
+     * 設定color Sensitivity
      *
-     * @param colorWall 合理值以EnumColorWall定義
+     * @param newColorSensitivity 合理值 1~8
      */
-    void setColorWall(EnumColorWall colorWall);
+    void setColorSensitivity(EnumColorSensitivity newColorSensitivity);
 
     /**
      * 定義Color Angle的合理值
      */
     enum EnumColorAngle {
-        ColorAngle_Minus6,
-        ColorAngle_Minus3,
-        ColorAngle_0,
-        ColorAngle_3,
-        ColorAngle_6
+        ColorAngle_Minus8("-8"),
+        ColorAngle_Minus4("-4"),
+        ColorAngle_0("0"),
+        ColorAngle_4("4"),
+        ColorAngle_8("8");
+
+        private final String strValue;
+
+        EnumColorAngle(String strValue) {
+            this.strValue = strValue;
+        }
+
+        @Override
+        public String toString(){
+            return strValue;
+        }
     }
 
     /**
@@ -624,9 +694,9 @@ public interface Probe {
     /**
      * 設定color Angle
      *
-     * @param colorAngle 合理值以EnumColorAngle定義
+     * @param newColorAngle 合理值以EnumColorAngle定義
      */
-    void setColorAngle(int colorAngle);
+    void setColorAngle(EnumColorAngle newColorAngle);
 
     /**
      * 回傳底層image bitmap的寬度

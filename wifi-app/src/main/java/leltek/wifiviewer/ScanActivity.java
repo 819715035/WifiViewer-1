@@ -5,10 +5,14 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.NumberPicker;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.corelibs.utils.ToastMgr;
@@ -44,6 +48,14 @@ public class ScanActivity extends AppCompatActivity
     private SeekBar mSeekBarEnhancement;
     private Button mResetAllTgc;
     private NumberPicker mNumberPicker;
+    private Spinner mSpinnerColorPrf;
+    private SeekBar mSeekBarColorSensitivity;
+    private Spinner mSpinnerColorAngle;
+	private SeekBar mSeekBarBattery;
+
+    public static Intent newIntent(Context packageContext) {
+        return new Intent(packageContext, ScanActivity.class);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +85,7 @@ public class ScanActivity extends AppCompatActivity
         mBMode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                probe.swithToBMode();
+                probe.switchToBMode();
             }
         });
 
@@ -81,7 +93,7 @@ public class ScanActivity extends AppCompatActivity
         mCMode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                probe.swithToCMode();
+                probe.switchToCMode();
             }
         });
 
@@ -306,6 +318,79 @@ public class ScanActivity extends AppCompatActivity
                 probe.setGrayMap(newVal);
             }
         });
+
+        mSpinnerColorPrf = (Spinner) findViewById(R.id.spinnerColorPrf);
+        mSpinnerColorPrf.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, Probe.EnumColorPrf.values()));
+
+        mSpinnerColorPrf.setSelection(((ArrayAdapter<Probe.EnumColorPrf>) mSpinnerColorPrf.getAdapter())
+                .getPosition(probe.getColorPrf()));
+
+        mSpinnerColorPrf.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Probe.EnumColorPrf newColorPrf = (Probe.EnumColorPrf) parent.getItemAtPosition(position);
+                probe.setColorPrf(newColorPrf);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        mSeekBarColorSensitivity = (SeekBar) findViewById(R.id.seekBarColorSensitivity);
+        mSeekBarColorSensitivity.setProgress(probe.getColorSensitivity().getIntValue());
+        mSeekBarColorSensitivity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                for (Probe.EnumColorSensitivity s : Probe.EnumColorSensitivity.values()) {
+                    if (s.getIntValue() == progress) {
+                        probe.setColorSensitivity(s);
+                        logger.debug("Color Sensitivity: {}", s.toString());
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        mSpinnerColorAngle = (Spinner) findViewById(R.id.spinnerColorAngle);
+        mSpinnerColorAngle.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, Probe.EnumColorAngle.values()));
+
+        mSpinnerColorAngle.setSelection(((ArrayAdapter<Probe.EnumColorAngle>) mSpinnerColorAngle.getAdapter())
+                .getPosition(probe.getColorAngle()));
+
+        mSpinnerColorAngle.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Probe.EnumColorAngle newColorAngle = (Probe.EnumColorAngle) parent.getItemAtPosition(position);
+                probe.setColorAngle(newColorAngle);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+		
+		mSeekBarBattery = (SeekBar) findViewById(R.id.seekBarBattery);
+        mSeekBarBattery.setOnTouchListener(new View.OnTouchListener(){
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return true;
+            }
+        });
     }
 
     private void switchFit() {
@@ -353,7 +438,7 @@ public class ScanActivity extends AppCompatActivity
         super.onResume();
         logger.debug("onResume() called");
         if (probe.getMode() == Probe.EnumMode.MODE_C) {
-            probe.swithToBMode();
+            probe.switchToBMode();
         } if (probe.getMode() == Probe.EnumMode.MODE_B && !probe.isLive()) {
             probe.startScan();
         }
@@ -409,33 +494,51 @@ public class ScanActivity extends AppCompatActivity
         }
      }
 
-    /**
-     * 設定depth成功
-     *
-     * @param newDepth newDepth
-     */
     @Override
     public void onDepthSet(Probe.EnumDepth newDepth) {
 
     }
 
     @Override
-    public void onDepthSetError() {
+    public void onDepthSetError(Probe.EnumDepth oldDepth) {
 
+    }
+
+    @Override
+    public void onColorPrfSet(Probe.EnumColorPrf newColorPrf) {
+
+    }
+
+    @Override
+    public void onColorPrfSetError(Probe.EnumColorPrf oldColorPrf) {
+        mSpinnerColorPrf.setSelection(((ArrayAdapter<Probe.EnumColorPrf>) mSpinnerColorPrf.getAdapter())
+                .getPosition(oldColorPrf));
+    }
+
+    @Override
+    public void onColorSensitivitySet(Probe.EnumColorSensitivity newColorSensitivity) {
+
+    }
+
+    @Override
+    public void onColorSensitivitySetError(Probe.EnumColorSensitivity oldColorSensitivity) {
+        mSeekBarColorSensitivity.setProgress(oldColorSensitivity.getIntValue());
+    }
+
+    @Override
+    public void onColorAngleSet(Probe.EnumColorAngle newColorAngle) {
+
+    }
+
+    @Override
+    public void onColorAngleSetError(Probe.EnumColorAngle oldColorAngle) {
+        mSpinnerColorAngle.setSelection(((ArrayAdapter<Probe.EnumColorAngle>) mSpinnerColorAngle.getAdapter())
+                .getPosition(oldColorAngle));
     }
 
     @Override
     public void onImageBufferOverflow() {
         ToastMgr.show("This hardware is not capable of image processing.");
-    }
-
-    public static Intent newIntent(Context packageContext) {
-        return new Intent(packageContext, ScanActivity.class);
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        //probe.startScan();
     }
 
     @Override
@@ -451,6 +554,9 @@ public class ScanActivity extends AppCompatActivity
     @Override
     public void onBatteryLevelChanged(int newBatteryLevel) {
         // update battey level displayed on UI
+        logger.debug("Battery level  is " + newBatteryLevel + "%");
+        if(newBatteryLevel>100) newBatteryLevel=100;
+        mSeekBarBattery.setProgress(newBatteryLevel);
     }
 
     @Override
@@ -461,6 +567,7 @@ public class ScanActivity extends AppCompatActivity
     @Override
     public void onTemperatureChanged(int newTemperature) {
         // update temperature displayed on UI
+        logger.debug("Temperature  is " + newTemperature + "°C");
     }
 
     @Override
