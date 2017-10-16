@@ -161,7 +161,7 @@ public interface Probe {
         public Date date;
         public int frameRate;
 
-        public float freq;
+        public Float freq;
         public EnumDepth depth;
 
         public BModeFrameData bModeFrameData;
@@ -275,6 +275,13 @@ public interface Probe {
         void onNewFrameReady(Frame frame, Bitmap bitmap);
 
         /**
+         * scan進行中，傳回接收到的M mode scanline
+         *
+         * @param line 接收到的scanline的內容：byte[512]
+         */
+        void onNewMmodeReady(byte[] line);
+
+        /**
          * 設定depth成功
          *
          * @param newDepth newDepth
@@ -287,6 +294,34 @@ public interface Probe {
          * @param oldDepth oldDepth
          */
         void onDepthSetError(EnumDepth oldDepth);
+
+        /**
+         * 設定freq成功
+         *
+         * @param newFreq newFreq
+         */
+        void onFreqSet(Float newFreq);
+
+        /**
+         * 設定freq失敗
+         *
+         * @param oldFreq oldFreq
+         */
+        void onFreqSetError(Float oldFreq);
+
+        /**
+         * 設定M mode scanline成功
+         *
+         * @param newScanlineMmode
+         */
+        void onScanlineMmodeSet(Integer newScanlineMmode);
+
+        /**
+         * 設定M mode scanline失敗
+         *
+         * @param oldScanlineMmode
+         */
+        void onScanlineMmodeSetError(Integer oldScanlineMmode);
 
         /**
          * 設定color PRF成功
@@ -345,6 +380,7 @@ public interface Probe {
 
     enum EnumMode {
         MODE_B,
+        MODE_M,
         MODE_C
     }
 
@@ -356,6 +392,13 @@ public interface Probe {
     void switchToBMode();
 
     /**
+     * 試圖將scan mode切換為M mode
+     * 由ScanListener.onModeSwitched(EnumMode mode), 且mode等於MODE_M表示切換成功
+     * 由ScanListener.onModeSwitchingError()表示切換失敗
+     */
+    void switchToMMode();
+
+    /**
      * 試圖將scan mode切換為C mode
      * 由ScanListener.onModeSwitched(String mode), 且mode等於MODE_C表示切換成功
      * 由ScanListener.onModeSwitchingError()表示切換失敗
@@ -365,7 +408,7 @@ public interface Probe {
     /**
      * 回傳目前的scan mode
      *
-     * @return "B"表示B mode
+     * @return "B"表示B mode, "M"表示M mode, "C"表示color mode
      */
     EnumMode getMode();
 
@@ -394,11 +437,46 @@ public interface Probe {
     int getFrameRate();
 
     /**
-     * 單位為 MHz
+     * 取得目前的freq, 單位為 MHz
      *
-     * @return Freq Freq
+     * @return Freq
      */
     float getFreq();
+
+    /**
+     * 取得所有可用的freq, 單位為 MHz
+     *
+     * @return the all of the possible freq
+     */
+    Float[] getAllFreq();
+
+    /**
+     * 要求設定freq
+     * 由ScanListener.onFreqSet()表示設定成功
+     * 由ScanListener.onFreqSetError表示設定失敗
+     *
+     * @param newFreq 合理值 2.6 ~ 12
+     *              
+     */
+    void setFreq(Float newFreq);
+
+    /**
+     * 取得目前M mode的scanline: 0 ~ 127
+     *
+     * @return scanlineMmode
+     */
+    int getScanlineMmode();
+
+    /**
+     * 要求設定M mode的scanline
+     * 由ScanListener.onScanlineMmodeSet()表示設定成功
+     * 由ScanListener.onScanlineMmodeSetError表示設定失敗
+     *
+     * @param scanline 合理值 0 ~ 127
+     *              
+     */
+    void setScanlineMmode(Integer scanline);
+
 
     enum EnumDepth {
         //LinearDepth_32,

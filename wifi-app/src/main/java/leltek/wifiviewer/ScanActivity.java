@@ -495,12 +495,36 @@ public class ScanActivity extends AppCompatActivity
      }
 
     @Override
+    public void onNewMmodeReady(byte[] line) {
+    }
+
+    @Override
+    public void onScanlineMmodeSet(Integer newScanlineMmode) {
+
+    }
+
+    @Override
+    public void onScanlineMmodeSetError(Integer oldScanlineMmode) {
+
+    }
+
+    @Override
     public void onDepthSet(Probe.EnumDepth newDepth) {
 
     }
 
     @Override
     public void onDepthSetError(Probe.EnumDepth oldDepth) {
+
+    }
+
+    @Override
+    public void onFreqSet(Float newFreq) {
+
+    }
+
+    @Override
+    public void onFreqSetError(Float oldFreq) {
 
     }
 
