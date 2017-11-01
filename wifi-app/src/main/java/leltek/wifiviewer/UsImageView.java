@@ -74,7 +74,6 @@ public class UsImageView extends AppCompatImageView {
     private int canvasHeight;
 
     private final float minWidth = 100;
-    private float colorAngle = 0;
 
     private float roiWidth = 200;
     private float roiHeight = 200;
@@ -151,7 +150,7 @@ public class UsImageView extends AppCompatImageView {
         float height = Math.min(canvasHeight, imageHeight);
 
         if (r == 0) {
-            roiWidth = width / 2f;
+            roiWidth = width / 3f;
             roiHeight = height / 4f;
             roiStart.x = values[Matrix.MTRANS_X] + (width - roiWidth) / 2f;
             roiStart.y = roiHeight;
@@ -161,9 +160,9 @@ public class UsImageView extends AppCompatImageView {
             ball0.setY(roiStart.y);
             ball1.setX(roiStart.x + roiWidth);
             ball1.setY(roiStart.y);
-            ball2.setX(ball1.getX() - deltaX);
+            ball2.setX(ball1.getX() + deltaX);
             ball2.setY(ball0.getY() + roiHeight);
-            ball3.setX(ball0.getX() - deltaX);
+            ball3.setX(ball0.getX() + deltaX);
             ball3.setY(ball2.getY());
         } else {
             roiDiffTheta = maxTheta;
@@ -205,6 +204,9 @@ public class UsImageView extends AppCompatImageView {
         }
         else if (probe.getMode() == Probe.EnumMode.MODE_C) {
             cModeOnTouchEvent(event);
+        }
+        else if (probe.getMode() == Probe.EnumMode.MODE_M) {
+            mModeOnTouchEvent(event);
         }
 
         return true;
@@ -264,6 +266,8 @@ public class UsImageView extends AppCompatImageView {
         }
 
         setImageMatrix(zoomMatrix);
+    }
+    public void mModeOnTouchEvent(MotionEvent event) {
     }
 
     @Override
@@ -443,7 +447,7 @@ public class UsImageView extends AppCompatImageView {
                         getImageMatrix().getValues(values);
                         float imageWidth = probe.getImageWidthPx() * values[Matrix.MSCALE_X];
                         float tranX = values[Matrix.MTRANS_X];
-                        float skipWidth = imageWidth / 8f;
+                        float skipWidth = imageWidth / 4f;
                         float leftLimit = Math.max(0f, tranX + skipWidth);
                         float rightLimit = Math.min(canvasWidth, tranX + imageWidth - skipWidth);
 
@@ -458,8 +462,8 @@ public class UsImageView extends AppCompatImageView {
                             roiHeight = ball2.getY() - y;
                             float deltaX = calDeltaXByAngle();
 
-                            if (colorAngle > 0) {
-                                leftLimit += deltaX;
+                            if (probe.getColorAngleTan() < 0) {
+                                leftLimit -= deltaX;
                             }
 
                             if (x < leftLimit)
@@ -484,8 +488,8 @@ public class UsImageView extends AppCompatImageView {
                             ball0.setY(y);
                             ball1.setX(x + roiWidth);
                             ball1.setY(y);
-                            ball2.setX(ball1.getX() - deltaX);
-                            ball3.setX(x - deltaX);
+                            ball2.setX(ball1.getX() + deltaX);
+                            ball3.setX(x + deltaX);
                         } else if (ballId == 1) {
                             if (y < 0)
                                 y = 0;
@@ -497,8 +501,8 @@ public class UsImageView extends AppCompatImageView {
                             roiHeight = ball2.getY() - y;
 
                             float deltaX = calDeltaXByAngle();
-                            if (colorAngle < 0) {
-                                rightLimit += deltaX;
+                            if (probe.getColorAngleTan() > 0) {
+                                rightLimit -= deltaX;
                             }
 
                             if (x > rightLimit)
@@ -523,8 +527,8 @@ public class UsImageView extends AppCompatImageView {
                             ball1.setY(y);
                             ball0.setX(x - roiWidth);
                             ball0.setY(y);
-                            ball2.setX(x - deltaX);
-                            ball3.setX(ball0.getX() - deltaX);
+                            ball2.setX(x + deltaX);
+                            ball3.setX(ball0.getX() + deltaX);
                         } else if (ballId == 2) {
                             if (y > canvasHeight)
                                 y = canvasHeight;
@@ -536,8 +540,8 @@ public class UsImageView extends AppCompatImageView {
                             roiHeight = y - ball1.getY();
 
                             float deltaX = calDeltaXByAngle();
-                            if (colorAngle > 0) {
-                                rightLimit -= deltaX;
+                            if (probe.getColorAngleTan() < 0) {
+                                rightLimit += deltaX;
                             }
 
                             if (x > rightLimit)
@@ -562,8 +566,8 @@ public class UsImageView extends AppCompatImageView {
                             ball2.setY(y);
                             ball3.setX(x - roiWidth);
                             ball3.setY(y);
-                            ball0.setX(ball3.getX() + deltaX);
-                            ball1.setX(x + deltaX);
+                            ball0.setX(ball3.getX() - deltaX);
+                            ball1.setX(x - deltaX);
                         } else if (ballId == 3) {
                             if (y > canvasHeight)
                                 y = canvasHeight;
@@ -575,8 +579,8 @@ public class UsImageView extends AppCompatImageView {
                             roiHeight = y - ball0.getY();
 
                             float deltaX = calDeltaXByAngle();
-                            if (colorAngle < 0) {
-                                leftLimit -= deltaX;
+                            if (probe.getColorAngleTan() > 0) {
+                                leftLimit += deltaX;
                             }
 
                             if (x < leftLimit)
@@ -601,8 +605,8 @@ public class UsImageView extends AppCompatImageView {
                             ball3.setY(y);
                             ball2.setX(x + roiWidth);
                             ball2.setY(y);
-                            ball0.setX(x + deltaX);
-                            ball1.setX(ball2.getX() + deltaX);
+                            ball0.setX(x - deltaX);
+                            ball1.setX(ball2.getX() - deltaX);
                         }
 
                         setLinearRoiData();
@@ -724,11 +728,11 @@ public class UsImageView extends AppCompatImageView {
     private void moveLinearRoi(float diffX, float diffY, float[] values) {
         float imageWidth = probe.getImageWidthPx() * values[Matrix.MSCALE_X];
         float tranX = values[Matrix.MTRANS_X];
-        float skipWidth = imageWidth / 8f;
+        float skipWidth = imageWidth / 4f;
         float leftLimit = Math.max(0f, tranX + skipWidth);
         float rightLimit = Math.min(canvasWidth, tranX + imageWidth - skipWidth);
 
-        if (colorAngle >= 0f) {
+        if (probe.getColorAngleTan() <= 0f) {
             if (ball3.getX() + diffX < leftLimit) {
                 diffX = leftLimit - ball3.getX();
             } else if (ball1.getX() + diffX > rightLimit) {
@@ -801,7 +805,7 @@ public class UsImageView extends AppCompatImageView {
         float roiX2Px = (ball2.getX() - tranX) / scaleX;
         float roiY2Px = (ball2.getY() - tranY) / scaleY;
 
-        probe.setLinearRoiData(roiXPx, roiYPx, roiX2Px, roiY2Px);
+        probe.setLinearRoiData(roiXPx, roiYPx, roiX2Px, roiY2Px, probe.getColorAngleTan());
     }
 
     private void setConvexRoiData() {
@@ -829,15 +833,15 @@ public class UsImageView extends AppCompatImageView {
 
     private boolean isInside(float x, float y) {
         if (r == 0) {
-            if (colorAngle == 0 && x >= ball0.getX() && x <= ball1.getX()
+            if (probe.getColorAngleTan() == 0 && x >= ball0.getX() && x <= ball1.getX()
                     && y >= ball0.getY() && y <= ball2.getY())
                 return true;
 
             if (y < ball0.getY() || y > ball2.getY())
                 return false;
 
-            float diff = (y - ball0.getY()) * tanF(colorAngle);
-            if (x >= (ball0.getX() - diff) && x <= (ball1.getX() - diff)) {
+            float diff = (y - ball0.getY()) * probe.getColorAngleTan();
+            if (x >= (ball0.getX() + diff) && x <= (ball1.getX() + diff)) {
                 return true;
             }
         }
@@ -857,7 +861,7 @@ public class UsImageView extends AppCompatImageView {
 
     private void drawOutline(Canvas canvas) {
         if (r == 0) {
-            if (colorAngle == 0) {
+            if (probe.getColorAngleTan() == 0) {
                 canvas.drawRect(ball0.getX(), ball0.getY(), ball2.getX(), ball2.getY(),
                         paint);
             } else {
@@ -895,10 +899,10 @@ public class UsImageView extends AppCompatImageView {
     }
 
     private float calDeltaXByAngle() {
-        if (colorAngle == 0)
+        if (probe.getColorAngleTan() == 0)
             return 0f;
 
-        return roiHeight * tanF(colorAngle);
+        return roiHeight * probe.getColorAngleTan();
     }
 
     private void setConvexMidRoi() {
@@ -1013,7 +1017,7 @@ public class UsImageView extends AppCompatImageView {
         convexOrigin.x = tranX + originXPx * scaleX;
         convexOrigin.y = tranY + originYPx * scaleY;
         float theta = probe.getTheta();
-        maxTheta = theta * 0.75f;
+        maxTheta = theta * 0.5f;
 
         if (r == 0) {
             moveLinearRoi(0, 0, values);

@@ -146,7 +146,7 @@ public interface Probe {
         public int colorPersistence;
         public EnumColorPrf colorPrf;
         public EnumColorSensitivity colorSensitivity;
-        public EnumColorAngle colorAngle;
+        public Float colorAngle;
         public float originXPx;
         public float originYPx;
         public float rPx;
@@ -309,6 +309,34 @@ public interface Probe {
          */
         void onFreqSetError(Float oldFreq);
 
+//        /**
+//         * 設定tgcDelayBmode成功
+//         *
+//         * @param newTgcDelayBmode newTgcDelayBmode
+//         */
+//        void onTgcDelayBmodeSet(Float newTgcDelayBmode);
+//
+//        /**
+//         * 設定tgcDelayBmode失敗
+//         *
+//         * @param oldTgcDelayBmode oldTgcDelayBmode
+//         */
+//        void onTgcDelayBmodeSetError(Float oldTgcDelayBmode);
+//
+//        /**
+//         * 設定tgcDelayCmode成功
+//         *
+//         * @param newTgcDelayCmode newTgcDelayCmode
+//         */
+//        void onTgcDelayCmodeSet(Float newTgcDelayCmode);
+//
+//        /**
+//         * 設定tgcDelayCmode失敗
+//         *
+//         * @param oldTgcDelayCmode oldTgcDelayCmode
+//         */
+//        void onTgcDelayCmodeSetError(Float oldTgcDelayCmode);
+
         /**
          * 設定M mode scanline成功
          *
@@ -356,14 +384,14 @@ public interface Probe {
          *
          * @param newColorAngle newColorAngle
          */
-        void onColorAngleSet(EnumColorAngle newColorAngle);
+        void onColorAngleSet(Float newColorAngle);
 
         /**
          * 設定color Angle失敗
          *
          * @param oldColorAngle oldColorAngle
          */
-        void onColorAngleSetError(EnumColorAngle oldColorAngle);
+        void onColorAngleSetError(Float oldColorAngle);
 
         /**
          * 當發生此事件時，代表此硬體來不及做影像後處理，底層會將image丟掉
@@ -437,18 +465,18 @@ public interface Probe {
     int getFrameRate();
 
     /**
-     * 取得目前的freq, 單位為 MHz
-     *
-     * @return Freq
-     */
-    float getFreq();
-
-    /**
      * 取得所有可用的freq, 單位為 MHz
      *
      * @return the all of the possible freq
      */
     Float[] getAllFreq();
+
+    /**
+     * 取得目前的freq, 單位為 MHz
+     *
+     * @return Freq
+     */
+    float getFreq();
 
     /**
      * 要求設定freq
@@ -459,6 +487,54 @@ public interface Probe {
      *              
      */
     void setFreq(Float newFreq);
+
+    /**
+     * 取得所有可用的B mode Tgc Delay
+     *
+     * @return the all of the possible B mode tgc delay
+     */
+    Integer[] getAllTgcDelayBmode();
+
+    /**
+     * 取得目前的B mode Tgc Delay
+     *
+     * @return B mode tgc delay
+     */
+    Integer getTgcDelayBmode();
+
+    /**
+     * 要求設定B mode Tgc Delay
+     * 由ScanListener.onTgcDelayBmodeSet()表示設定成功
+     * 由ScanListener.onTgcDelayBmodeSetError表示設定失敗
+     *
+     * @param newDelay 合理值 2.6 ~ 12
+     *              
+     */
+    void setTgcDelayBmode(Integer newDelay);
+
+    /**
+     * 取得所有可用的C mode Tgc Delay
+     *
+     * @return the all of the possible C mode tgc delay
+     */
+    Integer[] getAllTgcDelayCmode();
+
+    /**
+     * 取得目前的C mode Tgc Delay
+     *
+     * @return C mode tgc delay
+     */
+    Integer getTgcDelayCmode();
+
+    /**
+     * 要求設定C mode Tgc Delay
+     * 由ScanListener.onTgcDelayCmodeSet()表示設定成功
+     * 由ScanListener.onTgcDelayCmodeSetError表示設定失敗
+     *
+     * @param newDelay 合理值 2.6 ~ 12
+     *              
+     */
+    void setTgcDelayCmode(Integer newDelay);
 
     /**
      * 取得目前M mode的scanline: 0 ~ 127
@@ -672,6 +748,8 @@ public interface Probe {
      * 定義Color PRF的合理值
      */
     enum EnumColorPrf {
+        ColorPrf_1000("1"),
+        ColorPrf_2000("2"),
         ColorPrf_2270("2.27"),
         ColorPrf_2780("2.78"),
         ColorPrf_3570("3.57");
@@ -763,18 +841,33 @@ public interface Probe {
     }
 
     /**
+     * 取得所有可用的color angle, 單位為degree
+     *
+     * @return the all of the possible color angle
+     */
+    Float[] getAllColorAngle();
+
+
+    /**
      * 取得目前的color Angle
      *
      * @return color Angle
      */
-    EnumColorAngle getColorAngle();
+    Float getColorAngle();
+
+    /**
+     * 取得目前的color Angle tangent
+     *
+     * @return color Angle tan
+     */
+    float getColorAngleTan();
 
     /**
      * 設定color Angle
      *
      * @param newColorAngle 合理值以EnumColorAngle定義
      */
-    void setColorAngle(EnumColorAngle newColorAngle);
+    void setColorAngle(Float newColorAngle);
 
     /**
      * 回傳底層image bitmap的寬度
@@ -842,7 +935,7 @@ public interface Probe {
     /**
      * 設定linear ROI data
      */
-    void setLinearRoiData(float roiXPx, float roiYPx, float roiX2Px, float roiY2Px);
+    void setLinearRoiData(float roiXPx, float roiYPx, float roiX2Px, float roiY2Px, float roiAngleTan);
 
     /**
      * 設定convex ROI data

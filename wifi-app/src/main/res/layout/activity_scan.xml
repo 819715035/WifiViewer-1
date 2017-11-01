@@ -57,6 +57,12 @@
                     android:text="CF" />
 
                 <Button
+                    android:id="@+id/mMode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="M" />
+
+                <Button
                     android:id="@+id/fit"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

@@ -32,6 +32,7 @@ public class ScanActivity extends AppCompatActivity
     private Button mToggleScan;
     private Button mBMode;
     private Button mCMode;
+    private Button mMMode;
     private Button mFit;
     private UsImageView mImageView;
     private TextView mCineBufferCount;
@@ -96,6 +97,15 @@ public class ScanActivity extends AppCompatActivity
                 probe.switchToCMode();
             }
         });
+
+        mMMode = (Button) findViewById(R.id.mMode);
+        mMMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                probe.switchToMMode();
+            }
+        });
+
 
         mFit = (Button) findViewById(R.id.fit);
         mFit.setOnClickListener(new View.OnClickListener() {
@@ -364,18 +374,17 @@ public class ScanActivity extends AppCompatActivity
             }
         });
 
-        mSpinnerColorAngle = (Spinner) findViewById(R.id.spinnerColorAngle);
+        mSpinnerColorAngle = (Spinner)findViewById(R.id.spinnerColorAngle);
         mSpinnerColorAngle.setAdapter(new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, Probe.EnumColorAngle.values()));
+                android.R.layout.simple_spinner_item, probe.getAllColorAngle()));
 
-        mSpinnerColorAngle.setSelection(((ArrayAdapter<Probe.EnumColorAngle>) mSpinnerColorAngle.getAdapter())
+        mSpinnerColorAngle.setSelection(((ArrayAdapter<Float>) mSpinnerColorAngle.getAdapter())
                 .getPosition(probe.getColorAngle()));
 
         mSpinnerColorAngle.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Probe.EnumColorAngle newColorAngle = (Probe.EnumColorAngle) parent.getItemAtPosition(position);
-                probe.setColorAngle(newColorAngle);
+                probe.setColorAngle((Float)parent.getItemAtPosition(position));
             }
 
             @Override
@@ -383,8 +392,9 @@ public class ScanActivity extends AppCompatActivity
 
             }
         });
+
 		
-		mSeekBarBattery = (SeekBar) findViewById(R.id.seekBarBattery);
+	mSeekBarBattery = (SeekBar) findViewById(R.id.seekBarBattery);
         mSeekBarBattery.setOnTouchListener(new View.OnTouchListener(){
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -437,9 +447,10 @@ public class ScanActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         logger.debug("onResume() called");
-        if (probe.getMode() == Probe.EnumMode.MODE_C) {
+        if (probe.getMode() != Probe.EnumMode.MODE_B) {
             probe.switchToBMode();
-        } if (probe.getMode() == Probe.EnumMode.MODE_B && !probe.isLive()) {
+        }
+        if (probe.getMode() == Probe.EnumMode.MODE_B && !probe.isLive()) {
             probe.startScan();
         }
     }
@@ -448,9 +459,10 @@ public class ScanActivity extends AppCompatActivity
     public void onModeSwitched(Probe.EnumMode mode) {
         if (mode == Probe.EnumMode.MODE_B) {
             ToastMgr.show("switched to B mode");
-        }
-        else if (mode == Probe.EnumMode.MODE_C) {
+        } else if (mode == Probe.EnumMode.MODE_C) {
             ToastMgr.show("switched to Color mode");
+        } else if (mode == Probe.EnumMode.MODE_M) {
+            ToastMgr.show("switched to M mode");
         }
     }
 
@@ -470,7 +482,7 @@ public class ScanActivity extends AppCompatActivity
     @Override
     public void onScanStarted() {
         mToggleScan.setText(R.string.freeze);
-
+        logger.debug("ScanActivity.onScanStarted: freeze");
         ToastMgr.show("Scan Started");
     }
 
@@ -496,6 +508,7 @@ public class ScanActivity extends AppCompatActivity
 
     @Override
     public void onNewMmodeReady(byte[] line) {
+        logger.debug("onNewMmodeReady");
     }
 
     @Override
@@ -550,13 +563,13 @@ public class ScanActivity extends AppCompatActivity
     }
 
     @Override
-    public void onColorAngleSet(Probe.EnumColorAngle newColorAngle) {
-
+    public void onColorAngleSet(Float newColorAngle) {
+        mImageView.initRoi();
     }
 
     @Override
-    public void onColorAngleSetError(Probe.EnumColorAngle oldColorAngle) {
-        mSpinnerColorAngle.setSelection(((ArrayAdapter<Probe.EnumColorAngle>) mSpinnerColorAngle.getAdapter())
+    public void onColorAngleSetError(Float oldColorAngle) {
+        mSpinnerColorAngle.setSelection(((ArrayAdapter<Float>) mSpinnerColorAngle.getAdapter())
                 .getPosition(oldColorAngle));
     }
 

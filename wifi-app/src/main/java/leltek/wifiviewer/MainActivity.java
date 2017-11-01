@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity
 
         ToastMgr.init(getApplicationContext());
 
-        probe = WifiProbe.init(cfgRoot, getAssets());
+        probe = WifiProbe.init(cfgRoot, getAssets(), this);
         probe.setSystemListener(this);
         probe.setBatteryListener(this);
         probe.setTemperatureListener(this);
