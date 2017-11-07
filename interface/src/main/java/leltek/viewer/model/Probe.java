@@ -64,9 +64,9 @@ public interface Probe {
     boolean isRequesting();
 
     /**
-     * BatteryListener
+     * InfoListener
      */
-    interface BatteryListener {
+    interface InfoListener {
 
         /**
          * device battery level發生改變，可用來更新UI的battery level
@@ -81,24 +81,6 @@ public interface Probe {
          * @param BatteryLevel BatteryLevel
          */
         void onBatteryLevelTooLow(int BatteryLevel);
-    }
-
-    /**
-     * 設定BatteryListener
-     *
-     * @param batteryListener batteryListener
-     */
-    void setBatteryListener(BatteryListener batteryListener);
-
-    /**
-     * @return 0~100 (%), null代表尚未取得device的值
-     */
-    Integer getBatteryLevel();
-
-    /**
-     * TemperatureListener
-     */
-    interface TemperatureListener {
 
         /**
          * device溫度發生改變，可用來更新UI的temperature
@@ -113,14 +95,35 @@ public interface Probe {
          * @param temperature temperature
          */
         void onTemperatureOverHeated(int temperature);
+
+        /**
+         * the freeze/unfreeze button pressed
+         *
+         * @param button button
+         */
+        void onButtonPressed(int button);
+
+        /**
+         * the freeze/unfreeze button released
+         *
+         * @param button button
+         */
+        void onButtonReleased(int button);
+
     }
 
     /**
-     * 設定TemperatureListener
+     * 設定InfoListener
      *
-     * @param temperatureListener temperatureListener
+     * @param infoListener infoListener
      */
-    void setTemperatureListener(TemperatureListener temperatureListener);
+    void setInfoListener(InfoListener infoListener);
+
+    /**
+     * @return 0~100 (%), null代表尚未取得device的值
+     */
+    Integer getBatteryLevel();
+
 
     /**
      * @return 0~100 (°C), null代表尚未取得device的值

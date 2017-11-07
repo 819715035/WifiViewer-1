@@ -16,7 +16,7 @@ import leltek.viewer.model.Probe;
 import leltek.viewer.model.WifiProbe;
 
 public class MainActivity extends AppCompatActivity
-        implements Probe.SystemListener, Probe.BatteryListener, Probe.TemperatureListener {
+        implements Probe.SystemListener, Probe.InfoListener {
     final static Logger logger = LoggerFactory.getLogger(MainActivity.class);
 
     private Button mConnectButton;
@@ -34,8 +34,7 @@ public class MainActivity extends AppCompatActivity
 
         probe = WifiProbe.init(cfgRoot, getAssets(), this);
         probe.setSystemListener(this);
-        probe.setBatteryListener(this);
-        probe.setTemperatureListener(this);
+        probe.setInfoListener(this);
 
         mConnectButton = (Button) findViewById(R.id.connect_button);
         mConnectButton.setOnClickListener(new View.OnClickListener() {
@@ -153,4 +152,15 @@ public class MainActivity extends AppCompatActivity
     public void onTemperatureOverHeated(int temperature) {
         ToastMgr.show("Temperature over heated, now is " + temperature + " °");
     }
+    
+    @Override
+    public void onButtonPressed(int button) {
+        ToastMgr.show("Button pressed.");
+    }
+
+    @Override
+    public void onButtonReleased(int button) {
+        ToastMgr.show("Button released.");
+    }
+
 }

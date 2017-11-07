@@ -25,7 +25,7 @@ import leltek.viewer.model.WifiProbe;
 
 public class ScanActivity extends AppCompatActivity
         implements Probe.ScanListener, Probe.CineBufferListener,
-        Probe.BatteryListener, Probe.TemperatureListener {
+        Probe.InfoListener {
     final static Logger logger = LoggerFactory.getLogger(ScanActivity.class);
 
     private Probe probe;
@@ -67,8 +67,7 @@ public class ScanActivity extends AppCompatActivity
         probe = WifiProbe.getDefault();
         probe.setScanListener(this);
         probe.setCineBufferListener(this);
-        probe.setBatteryListener(this);
-        probe.setTemperatureListener(this);
+        probe.setInfoListener(this);
 
         mToggleScan = (Button) findViewById(R.id.toogle_scan);
         mToggleScan.setOnClickListener(new View.OnClickListener() {
@@ -611,4 +610,18 @@ public class ScanActivity extends AppCompatActivity
     public void onTemperatureOverHeated(int temperature) {
         ToastMgr.show("Temperature over heated, now is " + temperature + " °");
     }
+
+    @Override
+    public void onButtonPressed(int button) {
+        //ToastMgr.show("Button pressed.");
+        logger.debug("Button pressed {}", button);
+        mToggleScan.performClick();
+    }
+
+    @Override
+    public void onButtonReleased(int button) {
+        //ToastMgr.show("Button released.");
+        logger.debug("Button released {}", button);
+    }
+
 }
